@@ -1,0 +1,281 @@
+package runstatic.asmexample;
+
+import org.objectweb.asm.*;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+
+/**
+ * @author chenmoand
+ */
+public class CreateSimpleEnum implements Opcodes {
+
+    public enum Color {
+        RED, GREEN
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        // 这里面给0即刻 ClassWriter.COMPUTE_MAXS和ClassWriter.COMPUTE_FRAMES暂时不需要用
+        ClassWriter cw = new ClassWriter(0);
+
+        // 构造
+        cw.visit(
+                V1_8,                                      // 生成的源码版本
+                ACC_PUBLIC | ACC_ENUM,                                // 生成的作用域
+                "runstatic/asmexample/SimpleEnumClass",  // 生成的Class名称
+                "Ljava/lang/Enum<Lrunstatic/asmexample/SimpleEnumClass;>;",
+                Type.getInternalName(Enum.class),        // 这个是他的父类, 没有就给个Object.class就好
+                new String[0]                              // 这个是实现的接口, 没有就不传
+        );
+
+        // SimpleEnumClass.RED 代表常量
+        cw.visitField(
+                ACC_PUBLIC | ACC_STATIC | ACC_FINAL | ACC_ENUM,
+                "RED",
+                "Lrunstatic/asmexample/SimpleEnumClass;",
+                null,
+                null
+        );
+
+        // SimpleEnumClass.GREEN 代表常量
+        cw.visitField(
+                ACC_PUBLIC | ACC_STATIC | ACC_FINAL | ACC_ENUM,
+                "GREEN",
+                "Lrunstatic/asmexample/SimpleEnumClass;",
+                null,
+                null
+        );
+
+        // $VALUES 就是存放所有枚举的一个数组
+        cw.visitField(
+                ACC_PRIVATE | ACC_STATIC | ACC_FINAL | ACC_SYNTHETIC,
+                "$VALUES",
+                "[Lrunstatic/asmexample/SimpleEnumClass;",
+                null,
+                null
+        );
+
+        // 静态代码块
+        final MethodVisitor clinit = cw.visitMethod(
+                ACC_STATIC,                                // 众所周知静态代码块是静态的
+                "<clinit>",                            // 静态代码块<clinit> 而不是类名这里面需要注意
+                Type.getMethodDescriptor(Type.VOID_TYPE),  // 返回值但构造器没有返回值 ()V
+                null,                             // 泛型没有就给null
+                new String[0]                              // 抛出的异常列表
+        );
+
+        clinit.visitCode();
+
+        clinit.visitTypeInsn(NEW, "runstatic/asmexample/SimpleEnumClass");
+        clinit.visitInsn(DUP);
+        clinit.visitLdcInsn("RED");
+        clinit.visitInsn(ICONST_0);
+        clinit.visitMethodInsn(
+                INVOKESPECIAL,
+                "runstatic/asmexample/SimpleEnumClass",
+                "<init>",
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.INT_TYPE),
+                false
+        );
+
+        clinit.visitFieldInsn(
+                PUTSTATIC,
+                "runstatic/asmexample/SimpleEnumClass",
+                "RED",
+                "Lrunstatic/asmexample/SimpleEnumClass;"
+        );
+        clinit.visitTypeInsn(NEW, "runstatic/asmexample/SimpleEnumClass");
+        clinit.visitInsn(DUP);
+
+        clinit.visitLdcInsn("GREEN");
+        clinit.visitInsn(ICONST_2);
+        clinit.visitMethodInsn(
+                INVOKESPECIAL,
+                "runstatic/asmexample/SimpleEnumClass",
+                "<init>",
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.INT_TYPE),
+                false
+        );
+        clinit.visitFieldInsn(
+                PUTSTATIC,
+                "runstatic/asmexample/SimpleEnumClass",
+                "GREEN",
+                "Lrunstatic/asmexample/SimpleEnumClass;"
+        );
+
+        clinit.visitInsn(ICONST_2);
+        clinit.visitTypeInsn(ANEWARRAY, "runstatic/asmexample/SimpleEnumClass");
+        clinit.visitInsn(DUP);
+        clinit.visitInsn(ICONST_0);
+        clinit.visitFieldInsn(
+                GETSTATIC,
+                "runstatic/asmexample/SimpleEnumClass",
+                "RED",
+                "Lrunstatic/asmexample/SimpleEnumClass;"
+        );
+        clinit.visitInsn(AASTORE);
+        clinit.visitInsn(DUP);
+        clinit.visitInsn(ICONST_1);
+        clinit.visitFieldInsn(
+                GETSTATIC,
+                "runstatic/asmexample/SimpleEnumClass",
+                "GREEN",
+                "Lrunstatic/asmexample/SimpleEnumClass;"
+        );
+
+        clinit.visitInsn(AASTORE);
+
+        clinit.visitFieldInsn(
+                PUTSTATIC,
+                "runstatic/asmexample/SimpleEnumClass",
+                "$VALUES",
+                "[Lrunstatic/asmexample/SimpleEnumClass;"
+        );
+
+        clinit.visitInsn(RETURN);
+        clinit.visitMaxs(4, 0);
+
+        clinit.visitEnd();
+
+
+        // 创建一个基本的构造器
+        // 注意: 构造器也是方法
+        final MethodVisitor mv = cw.visitMethod(
+                ACC_PRIVATE,                                // 生成构造器的作用域
+                "<init>",                            // 构造器都叫<init> 而不是类名这里面需要注意
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.INT_TYPE),  // 返回值但构造器没有返回值 ()V
+                null,                             // 泛型没有就给null
+                new String[0]                              // 抛出的异常列表
+        );
+
+        // 访问开始
+        mv.visitCode();
+
+        final Label start = new Label();
+
+        mv.visitLabel(start);
+
+        // 拿出this变量
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitVarInsn(ALOAD, 1);
+        mv.visitVarInsn(ILOAD, 2);
+        mv.visitMethodInsn(
+                INVOKESPECIAL,
+                Type.getInternalName(Enum.class),
+                "<init>",                                 // 方法名
+                Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.INT_TYPE),       // 描述 ()V
+                false                                  // 是不是接口
+        );
+
+        mv.visitInsn(RETURN);
+
+        final Label end = new Label();
+
+        mv.visitLabel(end);
+        mv.visitLocalVariable("this", "Lrunstatic/asmexample/SimpleEnumClass;", null, start, end, 0);
+        mv.visitMaxs(3, 3);
+
+        // 访问结束
+        mv.visitEnd();
+
+
+        final MethodVisitor valueOf = cw.visitMethod(
+                ACC_PUBLIC | ACC_STATIC,
+                "valueOf",
+                "(Ljava/lang/String;)Lrunstatic/asmexample/SimpleEnumClass;",
+                null,
+                new String[0]
+
+        );
+
+        valueOf.visitCode();
+
+        valueOf.visitLdcInsn("Lrunstatic/asmexample/SimpleEnumClass;.class");
+
+        valueOf.visitVarInsn(ALOAD, 0);
+        valueOf.visitMethodInsn(
+                INVOKESTATIC,
+                Type.getInternalName(Enum.class),
+                "valueOf",
+                Type.getMethodDescriptor(Type.getType(Enum.class), Type.getType(Object.class), Type.getType(String.class)),
+                false
+        );
+
+        valueOf.visitTypeInsn(CHECKCAST, "runstatic/asmexample/SimpleEnumClass");
+        valueOf.visitInsn(ARETURN);
+
+        valueOf.visitLocalVariable(
+                "name",
+                Type.getDescriptor(String.class),
+                null,
+                new Label(),
+                new Label(),
+                0
+        );
+
+        valueOf.visitMaxs(2, 1);
+        valueOf.visitEnd();
+
+        // values()
+        {
+            final MethodVisitor values = cw.visitMethod(
+                    ACC_PUBLIC | ACC_STATIC,
+                    "values",
+                    "()[Lrunstatic/asmexample/SimpleEnumClass;",
+                    null,
+                    new String[0]
+            );
+
+            values.visitCode();
+
+            values.visitFieldInsn(
+                    GETSTATIC,
+                    "runstatic/asmexample/SimpleEnumClass",
+                    "$VALUES",
+                    "[Lrunstatic/asmexample/SimpleEnumClass;"
+            );
+
+            values.visitMethodInsn(
+                    INVOKEVIRTUAL,
+                    "[Lrunstatic/asmexample/SimpleEnumClass;",
+                    "clone",
+                    Type.getMethodDescriptor(Type.getType(Object.class)),
+                    false
+
+            );
+
+            values.visitTypeInsn(CHECKCAST, "[Lrunstatic/asmexample/SimpleEnumClass;");
+            values.visitInsn(ARETURN);
+
+            values.visitMaxs(1, 0);
+
+
+            values.visitEnd();
+        }
+
+        cw.visitEnd();
+
+
+
+        final byte[] bytes = cw.toByteArray();
+
+//         final OutputStream outputStream = new FileOutputStream(new File("./SimpleEnumClass.class"));
+//         outputStream.write(bytes);
+
+        final Class aClass = SimpleClassLoader.getInstance().forBytes("runstatic.asmexample.SimpleEnumClass", bytes);
+        final Enum red = Enum.valueOf(aClass, "RED");
+        final Enum green = Enum.valueOf(aClass, "GREEN");
+        System.out.println(red);
+        System.out.println(green);
+        final Method values = aClass.getDeclaredMethod("values");
+        System.out.println(Arrays.asList((Enum[])values.invoke(null)));
+
+    }
+
+
+}
+
