@@ -5,10 +5,10 @@
 ## 目录
 
 文章代码都在Github可以找到哦
-[https://github.com/mitu2/asm-example](github)
+[https://github.com/mitu2/asm-example](https://github.com/mitu2/asm-example)
 
 ### java普通ASM还原
 
-1. [java ASM创建一个简单的类](http://blog.static.run/archives/asm-example-create-simple-class)
-2. [java ASM创建一个简单的枚举类](http://blog.static.run/archives/asm-example-create-simple-enum)
-
+1. [java ASM创建一个简单的类](https://blog.static.run/archives/asm-example-create-simple-class)
+2. [java ASM创建一个简单的枚举类](https://blog.static.run/archives/asm-example-create-simple-enum)
+3. [java ASM创建一个简单的注解](https://blog.static.run/archives/asm-example-create-simple-annotation)
