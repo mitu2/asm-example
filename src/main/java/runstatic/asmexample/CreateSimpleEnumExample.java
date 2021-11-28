@@ -8,7 +8,7 @@ import java.util.Arrays;
 /**
  * @author chenmoand
  */
-public class CreateSimpleEnum implements Opcodes {
+public class CreateSimpleEnumExample implements Opcodes {
 
     public enum Color {
         RED, GREEN
