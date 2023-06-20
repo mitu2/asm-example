@@ -12,11 +12,16 @@ repositories {
     mavenCentral()
 }
 
+def jupiterVersion = '5.8.2'
+def asmVersion = '9.3'
+
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
     // https://mvnrepository.com/artifact/org.ow2.asm/asm
-    implementation 'org.ow2.asm:asm:9.2'
+    implementation "org.ow2.asm:asm:$asmVersion"
+    // https://mvnrepository.com/artifact/org.ow2.asm/asm-tree
+    implementation "org.ow2.asm:asm-tree:$asmVersion"
 }
 
 tasks.withType(JavaCompile) {
